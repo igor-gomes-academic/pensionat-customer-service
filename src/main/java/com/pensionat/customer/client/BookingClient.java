@@ -1,6 +1,6 @@
 package com.pensionat.customer.client;
 
-import com.pensionat.exception.ServiceUnavailableException;
+import com.pensionat.customer.exception.ServiceUnavailableException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
