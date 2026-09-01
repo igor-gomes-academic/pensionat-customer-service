@@ -1,7 +1,5 @@
 package com.pensionat.customer.client;
 
-package com.pensionat.client;
-
 import com.pensionat.exception.ServiceUnavailableException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
