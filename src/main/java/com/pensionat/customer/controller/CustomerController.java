@@ -7,6 +7,8 @@ import com.pensionat.customer.model.CustomerEntity;
 import com.pensionat.customer.service.CustomerService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.List;
 
@@ -28,7 +30,14 @@ public class CustomerController {
                 .toList();
     }
 
+    @GetMapping("/{id}")
+    public CustomerResponse getCustomerById(@PathVariable Long id) {
+        CustomerEntity customerEntity = customerService.getCustomerById(id);
+        return CustomerResponse.from(customerEntity);
+    }
+
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public CustomerResponse createCustomer(@Valid @RequestBody CreateCustomerRequest request) {
         CustomerEntity customerEntity = customerService.createCustomer(request);
         return CustomerResponse.from(customerEntity);

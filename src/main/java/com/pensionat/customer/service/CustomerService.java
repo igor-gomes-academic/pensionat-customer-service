@@ -50,6 +50,11 @@ public class CustomerService {
         return customerRepository.save(customer);
     }
 
+    public CustomerEntity getCustomerById(Long id) {
+        return customerRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Customer not found with id " + id));
+    }
+
     @Transactional
     public void deleteCustomer(Long id) {
         if (!customerRepository.existsById(id)) {
