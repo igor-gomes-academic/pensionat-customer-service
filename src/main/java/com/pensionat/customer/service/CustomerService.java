@@ -8,6 +8,8 @@ import com.pensionat.customer.exception.BadRequestException;
 import com.pensionat.customer.exception.NotFoundException;
 import com.pensionat.customer.model.CustomerEntity;
 import com.pensionat.customer.repository.CustomerRepository;
+import com.pensionat.customer.client.BookingClient;
+import com.pensionat.customer.exception.ConflictException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,13 +21,16 @@ public class CustomerService {
 
     private final CustomerRepository customerRepository;
     private final PasswordEncoder passwordEncoder;
+    private final BookingClient bookingClient;
 
     public CustomerService(
             CustomerRepository customerRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            BookingClient bookingClient
     ) {
         this.customerRepository = customerRepository;
         this.passwordEncoder = passwordEncoder;
+        this.bookingClient = bookingClient;
     }
 
     public List<CustomerEntity> getAllCustomers() {
@@ -49,6 +54,10 @@ public class CustomerService {
     public void deleteCustomer(Long id) {
         if (!customerRepository.existsById(id)) {
             throw new NotFoundException("Customer not found");
+        }
+
+        if (bookingClient.customerHasActiveBookings(id)) {
+            throw new ConflictException("Customer cannot be deleted due to active booking(s)");
         }
 
         customerRepository.deleteById(id);
