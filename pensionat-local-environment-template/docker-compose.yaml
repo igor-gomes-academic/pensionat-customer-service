@@ -1,0 +1,119 @@
+name: pensionat
+
+services:
+  booking-db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${BOOKING_DB_NAME}
+      MYSQL_USER: ${BOOKING_DB_USERNAME}
+      MYSQL_PASSWORD: ${BOOKING_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${BOOKING_DB_ROOT_PASSWORD}
+      TZ: ${TZ}
+    ports:
+      - "${BOOKING_DB_HOST_PORT}:3306"
+    volumes:
+      - booking_db_data:/var/lib/mysql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - MYSQL_PWD=$${MYSQL_PASSWORD} mysqladmin ping -h localhost -u$${MYSQL_USER} --silent
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - pensionat-network
+
+  customer-db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${CUSTOMER_DB_NAME}
+      MYSQL_USER: ${CUSTOMER_DB_USERNAME}
+      MYSQL_PASSWORD: ${CUSTOMER_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${CUSTOMER_DB_ROOT_PASSWORD}
+      TZ: ${TZ}
+    ports:
+      - "${CUSTOMER_DB_HOST_PORT}:3306"
+    volumes:
+      - customer_db_data:/var/lib/mysql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - MYSQL_PWD=$${MYSQL_PASSWORD} mysqladmin ping -h localhost -u$${MYSQL_USER} --silent
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - pensionat-network
+
+  booking-service:
+    build:
+      context: ./pensionat-booking-backend
+      dockerfile: Dockerfile
+    image: pensionat-booking-backend:local
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8080
+      DB_HOST: booking-db
+      DB_PORT: 3306
+      DB_NAME: ${BOOKING_DB_NAME}
+      DB_USERNAME: ${BOOKING_DB_USERNAME}
+      DB_PASSWORD: ${BOOKING_DB_PASSWORD}
+      CUSTOMER_SERVICE_URL: http://customer-service:8081
+    ports:
+      - "${BOOKING_SERVICE_HOST_PORT}:8080"
+    depends_on:
+      booking-db:
+        condition: service_healthy
+    networks:
+      - pensionat-network
+
+  customer-service:
+    build:
+      context: ./pensionat-customer-service
+      dockerfile: Dockerfile
+    image: pensionat-customer-service:local
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8081
+      DB_HOST: customer-db
+      DB_PORT: 3306
+      DB_NAME: ${CUSTOMER_DB_NAME}
+      DB_USERNAME: ${CUSTOMER_DB_USERNAME}
+      DB_PASSWORD: ${CUSTOMER_DB_PASSWORD}
+      BOOKING_SERVICE_URL: http://booking-service:8080
+    ports:
+      - "${CUSTOMER_SERVICE_HOST_PORT}:8081"
+    depends_on:
+      customer-db:
+        condition: service_healthy
+    networks:
+      - pensionat-network
+
+  frontend:
+    build:
+      context: ./pensionat-booking-frontend
+      dockerfile: Dockerfile
+    image: pensionat-booking-frontend:local
+    restart: unless-stopped
+    init: true
+    ports:
+      - "${FRONTEND_HOST_PORT}:3000"
+    depends_on:
+      booking-service:
+        condition: service_started
+      customer-service:
+        condition: service_started
+    networks:
+      - pensionat-network
+
+volumes:
+  booking_db_data:
+  customer_db_data:
+
+networks:
+  pensionat-network:
+    driver: bridge
