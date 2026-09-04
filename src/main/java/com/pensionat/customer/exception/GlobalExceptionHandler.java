@@ -2,6 +2,8 @@ package com.pensionat.customer.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -27,6 +29,23 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConflictException.class)
     ResponseEntity<String> handleConflictException(ConflictException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    ResponseEntity<String> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        String message = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .findFirst()
+                .map(error -> error.getDefaultMessage())
+                .orElse("Invalid request");
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    ResponseEntity<String> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Request Body");
     }
 
     @ExceptionHandler(Exception.class)

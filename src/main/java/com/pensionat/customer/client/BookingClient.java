@@ -25,7 +25,13 @@ public class BookingClient {
                     .retrieve()
                     .body(Boolean.class);
 
-            return Boolean.TRUE.equals(result);
+            if (result == null) {
+                throw new ServiceUnavailableException(
+                        "Booking service returned an invalid response. Please try again later."
+                );
+            }
+
+            return result;
 
         } catch (ResourceAccessException e) {
             throw new ServiceUnavailableException(
