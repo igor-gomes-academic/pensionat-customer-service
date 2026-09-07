@@ -18,16 +18,16 @@ The application handles customer registration, account management, login and dat
 
 ```text
 User
-  ↓
-Frontend (Next.js / React)
-  ↓ REST API requests
-Customer Service (Spring Boot)
-  ↓ Spring Data JPA / Hibernate
-Customer MySQL Database
-
+  │
+  ▼
+Frontend
+  │
+  │ Customer requests
+  ▼
 Customer Service
-  ↓ REST API request before account deletion
-Booking Service
+  ├── Customer data ──► Customer MySQL Database
+  │
+  └── Active booking check before account deletion ──► Booking Service
 ```
 
 Each service owns its own database. The Customer Service never reads from or writes directly to the Booking Service database.
