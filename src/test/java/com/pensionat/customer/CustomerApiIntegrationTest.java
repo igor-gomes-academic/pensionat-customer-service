@@ -34,7 +34,7 @@ public class CustomerApiIntegrationTest {
     }
 
     @Test
-    void shouldCreateCustomerAndReturn200(){
+    void shouldCreateCustomerAndReturn201(){
         CreateCustomerRequest request = new CreateCustomerRequest(
 
                 "Anna",
